@@ -16,7 +16,7 @@ public class Main {
         for(Annotation annotation : annotations){
             if(annotation instanceof Database dbAnnotation){
                 System.out.println(dbAnnotation.name());
-                System.out.println(dbAnnotation.dbtype());
+                System.out.println(dbAnnotation.type());
             }
         }
 

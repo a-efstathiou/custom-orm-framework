@@ -5,11 +5,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-
-//Can only be applied to classes
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface Database {
+@Target(ElementType.PARAMETER)
+public @interface Required {
     String type();
-    String name();
 }

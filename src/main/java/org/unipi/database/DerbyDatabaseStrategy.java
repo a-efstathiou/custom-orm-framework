@@ -5,11 +5,12 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class DerbyDatabaseStrategy implements DatabaseStrategy{
+public class DerbyDatabaseStrategy implements DatabaseStrategyInterface{
 
     @Override
-    public void createDatabase(String dbName) {
-
+    public StringBuilder createDatabase(String dbName) {
+        StringBuilder createDBString = new StringBuilder("CREATE DATABASE "+dbName);
+        return createDBString;
     }
 
     @Override
