@@ -6,8 +6,10 @@ import java.sql.Connection;
 
 //Strategy design pattern
 public interface DatabaseStrategyInterface {
-    StringBuilder createDatabase(@Required(type = "String")String dbName);
+    String getConnectionString(); //returns the appropriate connection-string
+
+    /*StringBuilder createDatabase(@Required(type = "String")String dbName);
     void connect(@Required(type = "String")String dbName);
 
-    void disconnect(Connection connection);
+    void disconnect(Connection connection);*/
 }

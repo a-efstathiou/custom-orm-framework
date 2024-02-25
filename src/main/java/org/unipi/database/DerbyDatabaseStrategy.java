@@ -8,6 +8,10 @@ import java.util.logging.Logger;
 public class DerbyDatabaseStrategy implements DatabaseStrategyInterface{
 
     @Override
+    public String getConnectionString() { ///////////////   WRONG STRING
+        return "jdbc:derby:javaprotal5d;create=true";
+    }
+   /* @Override
     public StringBuilder createDatabase(String dbName) {
         StringBuilder createDBString = new StringBuilder("CREATE DATABASE "+dbName);
         return createDBString;
@@ -31,5 +35,5 @@ public class DerbyDatabaseStrategy implements DatabaseStrategyInterface{
         catch (SQLException ex) {
             Logger.getLogger(DerbyDatabaseStrategy.class.getName()).log(Level.SEVERE, "Error disconnecting from the database", ex);
         }
-    }
+    }*/
 }
