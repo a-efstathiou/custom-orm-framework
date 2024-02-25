@@ -21,7 +21,6 @@ public class DatabaseConnector{
     }
 
     public Connection connect(String dbName) {
-        String connectionString = "jdbc:derby:javaprotal5d;create=true";
         Connection connection = null;
         try {
             connection = DriverManager.getConnection(connectionString);
@@ -35,7 +34,7 @@ public class DatabaseConnector{
         try {
             if (connection != null) {
                 connection.close();
-                System.out.println("Disconnected from the Derby database");
+                System.out.println("Disconnected from the database");
             } else {
                 System.out.println("Connection was already closed or null");
             }
