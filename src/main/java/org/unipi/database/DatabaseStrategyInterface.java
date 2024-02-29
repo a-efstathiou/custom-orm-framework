@@ -12,4 +12,8 @@ public interface DatabaseStrategyInterface {
     void connect(@Required(type = "String")String dbName);
 
     void disconnect(Connection connection);*/
+
+    Class<?> mapColumnType(String columnType);
+
+
 }

@@ -6,9 +6,15 @@ import java.util.Arrays;
 public class ClassUtils {
 
     //H κλάση αυτή είναι υπεύθυνη για ό,τι έχει σχέση με reflection στις κλάσεις
+    private ClassUtils(){}
+    private static class ClassUtilsHolder {
+        static ClassUtils classUtils = new ClassUtils();
+    }
+    public static ClassUtils getInstance() {
+        return ClassUtilsHolder.classUtils;
+    }
 
-
-    public Class<?> getInputClass(String fullyQualifiedName) {
+    private Class<?> getInputClass(String fullyQualifiedName) {
         try {
             // Dynamically load the class
             return Class.forName(fullyQualifiedName);
@@ -21,7 +27,7 @@ public class ClassUtils {
         return null;
     }
 
-    public Object constructClassObject(Class<?> c){
+    private Object constructClassObject(Class<?> c){
         try {
 
             Field[] fields = getDeclaredFields(c);
@@ -42,8 +48,13 @@ public class ClassUtils {
         return null;
     }
 
-    public Field[] getDeclaredFields(Class<?> c){
+    private Field[] getDeclaredFields(Class<?> c){
         return c.getDeclaredFields();
     }
+
+
+
+
+
 
 }
