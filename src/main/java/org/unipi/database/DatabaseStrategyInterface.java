@@ -3,6 +3,7 @@ package org.unipi.database;
 import org.unipi.annotations.Required;
 
 import java.sql.Connection;
+import java.util.List;
 
 //Strategy design pattern
 public interface DatabaseStrategyInterface {
@@ -13,7 +14,9 @@ public interface DatabaseStrategyInterface {
 
     void disconnect(Connection connection);*/
 
-    Class<?> mapColumnType(String columnType);
+    // We use mapColumnType to know what to use with get in the resultSet in the selectAll query in the db.
+    // It is also used to check for invalid inputs in the type of the Field Annotation.
+    List<Class<?>> mapColumnType(String columnType);
 
 
 }

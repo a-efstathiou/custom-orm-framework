@@ -4,8 +4,11 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.util.List;
 
 public class H2DatabaseStrategy implements DatabaseStrategyInterface{
+
+
     @Override
     public String getConnectionString() {
         //Need to add dbName from annotation
@@ -14,21 +17,21 @@ public class H2DatabaseStrategy implements DatabaseStrategyInterface{
     }
 
     @Override
-    public Class<?> mapColumnType(String columnType){
+    public List<Class<?>> mapColumnType(String columnType){
         String colType = columnType.toUpperCase();
         return switch (colType) {
-            case "INT" -> int.class;
-            case "BIGINT" -> long.class;
-            case "SMALLINT" -> short.class;
-            case "TINYINT" -> byte.class;
-            case "DECIMAL" -> BigDecimal.class;
-            case "REAL" -> float.class;
-            case "DOUBLE" -> double.class;
-            case "CHAR", "VARCHAR", "LONGVARCHAR" -> String.class;
-            case "BOOLEAN" -> boolean.class;
-            case "DATE" -> Date.class;
-            case "TIME" -> Time.class;
-            case "TIMESTAMP" -> Timestamp.class;
+            case "INT" -> List.of(int.class);
+            case "BIGINT" -> List.of(long.class);
+            case "SMALLINT" -> List.of(short.class , int.class);
+            case "TINYINT" -> List.of(byte.class, boolean.class);
+            case "NUMERIC","DECIMAL","DEC" -> List.of(BigDecimal.class);
+            case "REAL" -> List.of(float.class);
+            case "DOUBLE" -> List.of(double.class);
+            case "CHARACTER","CHAR", "VARCHAR", "LONGVARCHAR" -> List.of(String.class);
+            case "BOOLEAN" -> List.of(boolean.class);
+            case "DATE" -> List.of(Date.class);
+            case "TIME" -> List.of(Time.class);
+            case "TIMESTAMP" -> List.of(Timestamp.class);
             default -> throw new IllegalArgumentException("Unsupported column type: " + columnType);
         };
 

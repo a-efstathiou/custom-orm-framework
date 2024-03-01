@@ -1,29 +1,43 @@
 package org.unipi.database;
 
 import org.unipi.Main;
+import org.unipi.reflection.FileHandler;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class DatabaseConnector{
-    private String connectionString;
-    private DatabaseStrategyInterface databaseStrategyInterface;
-    public DatabaseConnector(DatabaseStrategyInterface databaseStrategyInterface){
-        this.databaseStrategyInterface = databaseStrategyInterface;
-        this.connectionString = databaseStrategyInterface.getConnectionString();
+public class DatabaseContext{
 
-//        if(databaseStrategyInterface instanceof DerbyDatabaseStrategy){
-//            databaseStrategyInterface.
-//        }
+    private DatabaseStrategyInterface strategy;
+    private DatabaseContext(){}
+    private static class DatabaseContextHolder {
+        static DatabaseContext databaseContext = new DatabaseContext();
     }
+    public static DatabaseContext getInstance() {
+        return DatabaseContextHolder.databaseContext;
+    }
+
+    public void setStrategy(DatabaseStrategyInterface strategy) {
+        this.strategy = strategy;
+    }
+
+    public String getConnectionString() {
+        return strategy.getConnectionString();
+    }
+
+    public List<Class<?>> mapColumnType(String columnType){
+        return strategy.mapColumnType(columnType);
+    }
+
 
     public Connection connect(String dbName) {
         Connection connection = null;
         try {
-            connection = DriverManager.getConnection(connectionString);
+            connection = DriverManager.getConnection(getConnectionString());
         } catch (SQLException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }

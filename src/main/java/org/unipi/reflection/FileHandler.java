@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 
 public class FileHandler {
 
-    //Η κλάση αυτή θα είναι υπεύθυνη για τη δημιουργία του string που θα μπει στο output αρχείο
+    //Η κλάση αυτή θα είναι υπεύθυνη για τα αρχεία.
 
     String outputDirectoryPath = "src/main/java/org/unipi/output/";
     ReflectionHandler rh = ReflectionHandler.getInstance();
@@ -54,6 +54,8 @@ public class FileHandler {
         String filePath = "src/main/java/org/unipi/input/";
         File directory = new File(filePath);
         File[] files = directory.listFiles();
+
+
         if (files != null && files.length > 0) {
             // Iterating through the files
             for (File file : files) {
