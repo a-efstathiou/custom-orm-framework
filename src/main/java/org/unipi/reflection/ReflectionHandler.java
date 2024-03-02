@@ -2,6 +2,7 @@ package org.unipi.reflection;
 
 import org.unipi.annotations.Database;
 import org.unipi.annotations.Field;
+import org.unipi.annotations.Table;
 import org.unipi.database.*;
 import org.unipi.input.Input;
 
@@ -9,10 +10,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,38 +31,32 @@ public class ReflectionHandler {
         //List to store the fields.
         // Create a HashMap to store name and type associations
         Map<String, String> fieldMap = new HashMap<>();
-        // Create context
+        String dbName = "";
+        String tableName = "";
 
             //Reflection to read annotations
             Annotation[] annotations = c.getAnnotations();
 
             //First loop to set strategy and dbName
             for(Annotation annotation : annotations) {
+                System.out.println("Annotation Type: " + annotation.annotationType());
                 if (annotation instanceof Database dbAnnotation) {
+                    dbName = dbAnnotation.name();
                     System.out.println(dbAnnotation.name());
                     System.out.println(dbAnnotation.type().toLowerCase());
 
                     setDatabaseStrategy(dbAnnotation.type(), databaseContext);
 
                 }
-
-                if(annotation instanceof Field fieldAnnotation){
-                    System.out.println();
-                    System.out.println(fieldAnnotation.name());
-                    System.out.println(fieldAnnotation.type());
-
-
-                    String name = fieldAnnotation.name();
-                    String type = fieldAnnotation.type();
-
-                    fieldMap.put(name, type);
+                if(annotation instanceof Table tableAnnotation) {
+                    tableName = tableAnnotation.name();
                 }
+
             }
 
-            getDatabaseColumns(c);
-
             //Replace tableName with the name taken from reflection
-            System.out.println(DatabaseMethodsClass.selectAll("Students",outputFileName,fieldMap));
+
+
         System.out.println(DatabaseMethodsClass.getConnectMethodString());
 
     }
@@ -85,9 +77,10 @@ public class ReflectionHandler {
         return fieldsString;
     }
 
-    public List<String> getDatabaseColumns(Class<?> c){
+    public Map<String,String> getDatabaseColumns(Class<?> c){
 
-        List<String> fieldsString = new ArrayList<>();
+
+        Map<String,String> dataColumn = new HashMap<>();
         //Reflection to get Fields
         java.lang.reflect.Field[] declaredFields = c.getDeclaredFields();
 
@@ -99,22 +92,24 @@ public class ReflectionHandler {
             for (Annotation annotation : annotations) {
                 if(annotation instanceof Field fieldAnnotation){
                     String fieldType = fieldAnnotation.type();
+                    String fieldName = fieldAnnotation.name();
                     try {
                         checkFields(field, fieldType);
                     }
                     catch (IllegalArgumentException ex){
                         ex.printStackTrace();
                     }
+
+                    String name = field.getName();
+                    String type = field.getType().getSimpleName();
+                    dataColumn.put(fieldName,type+" "+name);
                 }
             }
 
-            Class<?> type = field.getType();
-            String name = field.getName();
-            String modifier = Modifier.toString(field.getModifiers());
-            fieldsString.add(modifier + " "+type.getSimpleName()+" "+name+ ";\n");
         }
 
-        return fieldsString;
+
+        return dataColumn;
     }
 
     public Class<?> getInputClass(String fullyQualifiedName){
@@ -128,7 +123,6 @@ public class ReflectionHandler {
     }
 
     private void setDatabaseStrategy(String dbType, DatabaseContext context){
-        System.out.println("Inside setDatabaseStrategy");
         switch(dbType.toLowerCase()){
             case "derby" -> context.setStrategy(new DerbyDatabaseStrategy());
             case "h2" -> context.setStrategy(new H2DatabaseStrategy());
@@ -138,10 +132,10 @@ public class ReflectionHandler {
     }
 
     private void checkFields(java.lang.reflect.Field field, String fieldType){
-        System.out.println("Inside checkFields");
         List<Class<?>> acceptableFields = databaseContext.mapColumnType(fieldType);
         if(!isFieldTypeOk(field,acceptableFields)){
-            throw new IllegalArgumentException("Field type doesn't match the parameter");
+            throw new IllegalArgumentException("Field type : "+fieldType +" doesn't match the parameter : "+field.getType()+
+                    "\nChoose from available types: "+acceptableFields);
         }
     }
 
@@ -149,5 +143,18 @@ public class ReflectionHandler {
         return acceptableFields.contains(field.getType());
     }
 
+    public String getTableName(Class<?> c){
+        //Reflection to read annotations
+        Annotation[] annotations = c.getAnnotations();
+        String tableName ="";
+        //First loop to set strategy and dbName
+        for(Annotation annotation : annotations) {
+            if(annotation instanceof Table tableAnnotation) {
+                tableName = tableAnnotation.name();
+            }
+
+        }
+        return tableName;
+    }
 
 }
