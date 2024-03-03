@@ -1,23 +1,66 @@
 package org.unipi.database;
 
 import org.unipi.annotations.Required;
+import org.unipi.reflection.MethodClass;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DatabaseMethodsClass {
 
     static DatabaseContext databaseContext = DatabaseContext.getInstance();
 
-    public StringBuilder createDatabase(String dbName) {
-        StringBuilder createDBString = new StringBuilder("CREATE DATABASE "+dbName);
-        return createDBString;
+    public StringBuilder createTable(String allFields, String tableName) {
+        StringBuilder createTableBuilder = new StringBuilder();
+        createTableBuilder.append("try {\n")
+                .append("    Connection connection = connect();\n")
+                .append("    String createTableSQL = \"CREATE TABLE \"").append(tableName+"\n")
+                /*.append("            + \"(ID INTEGER NOT NULL PRIMARY KEY,\"\n")
+                .append("            + \"USERNAME VARCHAR(20),\"\n")
+                .append("            + \"PASSWORD VARCHAR(20))\";\n")*/
+                .append("    Statement statement = connection.createStatement();\n")
+                .append("    statement.executeUpdate(createTableSQL);\n")
+                .append("    statement.close();\n")
+                .append("    connection.close();\n")
+                .append("} catch (SQLException ex) {\n")
+                .append("    Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);\n")
+                .append("}");
+
+        return createTableBuilder;
+
     }
 
-    public StringBuilder delete(@Required(type = "String") String field, @Required(type = "String")String value){
-        StringBuilder createDBString = new StringBuilder(
-                "DELETE FROM Customers WHERE "+field+"=="+value);
-        return createDBString;
+    public static <T> StringBuilder delete(MethodClass methodClass, String tableName){
+        StringBuilder deleteDBString = new StringBuilder();
+        deleteDBString.append(methodClass.getModifier()).append(" ")
+                .append(methodClass.getReturnType()).append(" ")
+                .append(methodClass.getName()).append("(").append(methodClass.getParamType()).append(" ")
+                .append(methodClass.getParamName())
+                .append("){\nint count;\n")
+                .append("try {\n")
+                .append("    Connection connection = connect();\n")
+                .append("    String insertSQL = \"DELETE FROM ").append(tableName)
+                .append(" WHERE ").append(methodClass.getParamName()).append(" == ?")
+                .append("\";\n")
+                .append("    PreparedStatement preparedStatement = connection.prepareStatement(insertSQL);\n")
+                .append("    preparedStatement.setInt(1,").append(String.valueOf(methodClass.getParamName())).append(" );\n")
+                .append("    count = preparedStatement.executeUpdate();\n")
+                .append("    if(count>0){\n")
+                .append("        System.out.println(count+\" record deleted\");\n")
+                .append("    }\n")
+                .append("    preparedStatement.close();\n")
+                .append("    connection.close();\n")
+                .append("} catch (SQLException ex) {\n")
+                .append("    Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);\n")
+                .append("}\n")
+                .append("   return count;\n")
+                .append("}");
+        return deleteDBString;
     }
 
     public static String selectAll(String tableName,String outputFileName, Map<String,String> fields){

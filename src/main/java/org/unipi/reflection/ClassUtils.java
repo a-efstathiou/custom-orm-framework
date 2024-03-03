@@ -50,11 +50,4 @@ public class ClassUtils {
 
     private Field[] getDeclaredFields(Class<?> c){
         return c.getDeclaredFields();
-    }
-
-
-
-
-
-
-}
+    }}

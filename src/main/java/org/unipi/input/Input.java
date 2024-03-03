@@ -1,7 +1,10 @@
 package org.unipi.input;
 
+import org.unipi.annotations.DBMethod;
 import org.unipi.annotations.Database;
 import org.unipi.annotations.Field;
+
+import java.util.List;
 
 @Database(name="UnipiDB",type="Derby")
 public class Input {
@@ -11,8 +14,14 @@ public class Input {
     private boolean isOpen;
     private String name;
 
-    public void random(){
-        System.out.println("inside random");
+    @DBMethod(type = "DeleteOne", paramName = "id")
+    public int deleteInputs(String id){
+        return 0;
     }
+    @DBMethod(type = "SelectAll", paramName = "")
+    public List<String> getAllStudents(){
+        return null;
+    }
+
 
 }

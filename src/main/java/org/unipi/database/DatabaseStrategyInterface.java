@@ -6,7 +6,7 @@ import java.sql.Connection;
 import java.util.List;
 
 //Strategy design pattern
-public interface DatabaseStrategyInterface {
+    public interface DatabaseStrategyInterface {
     String getConnectionString(); //returns the appropriate connection-string
 
     /*StringBuilder createDatabase(@Required(type = "String")String dbName);

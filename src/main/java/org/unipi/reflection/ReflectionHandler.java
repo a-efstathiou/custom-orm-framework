@@ -1,20 +1,16 @@
 package org.unipi.reflection;
 
+import org.unipi.annotations.DBMethod;
 import org.unipi.annotations.Database;
 import org.unipi.annotations.Field;
 import org.unipi.database.*;
-import org.unipi.input.Input;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class ReflectionHandler {
 
@@ -40,6 +36,7 @@ public class ReflectionHandler {
 
             //First loop to set strategy and dbName
             for(Annotation annotation : annotations) {
+                System.out.println(annotation.toString());
                 if (annotation instanceof Database dbAnnotation) {
                     System.out.println(dbAnnotation.name());
                     System.out.println(dbAnnotation.type().toLowerCase());
@@ -48,7 +45,7 @@ public class ReflectionHandler {
 
                 }
 
-                if(annotation instanceof Field fieldAnnotation){
+                /*if(annotation instanceof Field fieldAnnotation){
                     System.out.println();
                     System.out.println(fieldAnnotation.name());
                     System.out.println(fieldAnnotation.type());
@@ -58,13 +55,21 @@ public class ReflectionHandler {
                     String type = fieldAnnotation.type();
 
                     fieldMap.put(name, type);
-                }
+                }*/
             }
 
             getDatabaseColumns(c);
-
+            List<MethodClass> allMethods = getMethods(c);
+            for(MethodClass method : allMethods){
+                if(method.getDbMethodType().toLowerCase().equals("deleteOne".toLowerCase())){
+                    System.out.println(DatabaseMethodsClass.delete(method, "Students"));
+                }
+                else if(method.getDbMethodType().toLowerCase().equals("SelectAll".toLowerCase())){
+                    System.out.println(DatabaseMethodsClass.selectAll("Students",outputFileName,fieldMap));
+                }
+            }
             //Replace tableName with the name taken from reflection
-            System.out.println(DatabaseMethodsClass.selectAll("Students",outputFileName,fieldMap));
+            //System.out.println(DatabaseMethodsClass.selectAll("Students",outputFileName,fieldMap));
         System.out.println(DatabaseMethodsClass.getConnectMethodString());
 
     }
@@ -117,6 +122,31 @@ public class ReflectionHandler {
         return fieldsString;
     }
 
+    public List<MethodClass> getMethods(Class<?> c) {
+        Method[] methodsArray = c.getDeclaredMethods();
+        List<MethodClass> methodClassesList = new ArrayList<>();
+        for (Method method : methodsArray) {
+            MethodClass methodFound = new MethodClass();
+            methodFound.setName(method.getName());
+            methodFound.setModifier(mapModifiers(method.getModifiers()));
+            methodFound.setReturnType(method.getReturnType().getSimpleName());
+
+            Annotation[] methodAnnotations = method.getDeclaredAnnotations();
+            for (Annotation annotation : methodAnnotations) {
+                if (annotation instanceof DBMethod) {
+                    DBMethod methodAnnotation = (DBMethod) annotation;
+                    methodFound.setDbMethodType(methodAnnotation.type());
+                    methodFound.setParamName(methodAnnotation.paramName());
+                }
+            }
+            for (Parameter parameter : method.getParameters()){
+                methodFound.setParamType(parameter.getType().getSimpleName());
+            }
+            methodClassesList.add(methodFound);
+        }
+        return methodClassesList;
+    }
+
     public Class<?> getInputClass(String fullyQualifiedName){
         try {
             // Dynamically load the class
@@ -147,6 +177,18 @@ public class ReflectionHandler {
 
     private boolean isFieldTypeOk(java.lang.reflect.Field field, List<Class<?>> acceptableFields){
         return acceptableFields.contains(field.getType());
+    }
+
+    private String mapModifiers(int code){
+        if(Modifier.isPublic(code)){
+            return "public";
+        }
+        else if(Modifier.isPrivate(code)){
+            return "private";
+        }
+        else {
+            return"protected";
+        }
     }
 
 
