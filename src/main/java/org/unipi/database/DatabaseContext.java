@@ -32,6 +32,9 @@ public class DatabaseContext{
     public List<Class<?>> mapColumnType(String columnType){
         return strategy.mapColumnType(columnType);
     }
+    public String getColumnType(String fieldType){
+        return strategy.getColymnType(fieldType);
+    }
 
 
     public Connection connect(String dbName) {

@@ -1,6 +1,5 @@
 package org.unipi.database;
 
-import org.unipi.annotations.Required;
 
 import java.sql.Connection;
 import java.util.List;
@@ -17,6 +16,7 @@ import java.util.List;
     // We use mapColumnType to know what to use with get in the resultSet in the selectAll query in the db.
     // It is also used to check for invalid inputs in the type of the Field Annotation.
     List<Class<?>> mapColumnType(String columnType);
+    String getColymnType(String fieldType);
 
 
 }

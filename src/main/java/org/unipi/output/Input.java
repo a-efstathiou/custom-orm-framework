@@ -5,5 +5,6 @@ public class Input {
   private int something;
   private boolean isOpen;
   private String name;
+  private String AM;
 
 }

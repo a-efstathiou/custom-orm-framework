@@ -1,7 +1,6 @@
 package org.unipi.reflection;
 
-import org.unipi.annotations.DBMethod;
-import org.unipi.annotations.Database;
+import org.unipi.annotations.*;
 import org.unipi.annotations.Field;
 import org.unipi.database.*;
 
@@ -17,7 +16,11 @@ public class ReflectionHandler {
     FileHandler fh = FileHandler.getInstance();
     DatabaseContext databaseContext = DatabaseContext.getInstance();
 
-    private ReflectionHandler(){}
+    private List<FieldClass> fieldClassList;
+
+    private ReflectionHandler(){
+        fieldClassList = new ArrayList<>();
+    }
     private static class ReflectionHandlerHolder {
         static ReflectionHandler reflectionHandler = new ReflectionHandler();
     }
@@ -57,17 +60,9 @@ public class ReflectionHandler {
                     fieldMap.put(name, type);
                 }*/
             }
-
+            checkValidNumberOfPK(c.getDeclaredFields()); //check if the number of PK is less than 2.
             getDatabaseColumns(c);
-            List<MethodClass> allMethods = getMethods(c);
-            for(MethodClass method : allMethods){
-                if(method.getDbMethodType().toLowerCase().equals("deleteOne".toLowerCase())){
-                    System.out.println(DatabaseMethodsClass.delete(method, "Students"));
-                }
-                else if(method.getDbMethodType().toLowerCase().equals("SelectAll".toLowerCase())){
-                    System.out.println(DatabaseMethodsClass.selectAll("Students",outputFileName,fieldMap));
-                }
-            }
+
             //Replace tableName with the name taken from reflection
             //System.out.println(DatabaseMethodsClass.selectAll("Students",outputFileName,fieldMap));
         System.out.println(DatabaseMethodsClass.getConnectMethodString());
@@ -100,7 +95,6 @@ public class ReflectionHandler {
 
             Annotation[] annotations = field.getAnnotations();
 
-
             for (Annotation annotation : annotations) {
                 if(annotation instanceof Field fieldAnnotation){
                     String fieldType = fieldAnnotation.type();
@@ -111,7 +105,9 @@ public class ReflectionHandler {
                         ex.printStackTrace();
                     }
                 }
+
             }
+
 
             Class<?> type = field.getType();
             String name = field.getName();
@@ -122,7 +118,9 @@ public class ReflectionHandler {
         return fieldsString;
     }
 
-    public List<MethodClass> getMethods(Class<?> c) {
+    //gets all the methods of the Input file using Reflection.
+    public List<MethodClass> getMethods(Class<?> c, java.lang.reflect.Field[] allFields) {
+
         Method[] methodsArray = c.getDeclaredMethods();
         List<MethodClass> methodClassesList = new ArrayList<>();
         for (Method method : methodsArray) {
@@ -130,22 +128,35 @@ public class ReflectionHandler {
             methodFound.setName(method.getName());
             methodFound.setModifier(mapModifiers(method.getModifiers()));
             methodFound.setReturnType(method.getReturnType().getSimpleName());
-
             Annotation[] methodAnnotations = method.getDeclaredAnnotations();
             for (Annotation annotation : methodAnnotations) {
                 if (annotation instanceof DBMethod) {
                     DBMethod methodAnnotation = (DBMethod) annotation;
                     methodFound.setDbMethodType(methodAnnotation.type());
-                    methodFound.setParamName(methodAnnotation.paramName());
+                    //Only one or zero parameters are allowed in DbMethods
+                    if(method.getParameters().length>1){
+                        throw new IllegalArgumentException("2 or more parameters are not allowed in DBMethods!");
+                    }
+                    else if(method.getParameters().length == 1){
+                        String primaryKey = findPrimaryKey(allFields);
+                        if(primaryKey==null){
+                            throw new IllegalArgumentException("You have not assigned a Primary key!");
+                        }
+                        else {
+                            //gets the param
+                            methodFound.setParamName(primaryKey);
+                            methodFound.setParamType(method.getParameters()[0].getType().getSimpleName());
+                        }
+                    }
                 }
-            }
-            for (Parameter parameter : method.getParameters()){
-                methodFound.setParamType(parameter.getType().getSimpleName());
             }
             methodClassesList.add(methodFound);
         }
         return methodClassesList;
     }
+
+    //Get th
+
 
     public Class<?> getInputClass(String fullyQualifiedName){
         try {
@@ -175,6 +186,10 @@ public class ReflectionHandler {
         }
     }
 
+/*    public List<FieldClass> getFieldClassList() {
+        return fieldClassList;
+    }*/
+
     private boolean isFieldTypeOk(java.lang.reflect.Field field, List<Class<?>> acceptableFields){
         return acceptableFields.contains(field.getType());
     }
@@ -191,5 +206,54 @@ public class ReflectionHandler {
         }
     }
 
+    //get all fieldClass objects
+    public List<FieldClass> getAllFieldClass(java.lang.reflect.Field[] fields){
+        for(java.lang.reflect.Field field : fields){
+            FieldClass fieldClass = new FieldClass();
+            for(Annotation annotation : field.getDeclaredAnnotations()){
+                if(annotation instanceof PrimaryKey){
+                    fieldClass.setPrimaryKey(true);
+                }
+                if(annotation instanceof Unique){
+                    fieldClass.setUnique(true);
+                }
+                if(annotation instanceof NotNull){
+                    fieldClass.setNotNull(true);
+                }
+            }
+            fieldClass.setName(field.getName());
+            fieldClass.setColumnType(databaseContext.getColumnType(field.getType().getSimpleName()));
+            fieldClassList.add(fieldClass);
+        }
+        return fieldClassList;
+    }
+
+    //finds the PK between the fields
+    private String findPrimaryKey(java.lang.reflect.Field[] fields){
+        String primaryKey = null;
+        for(java.lang.reflect.Field field : fields){
+            for(Annotation annotation : field.getDeclaredAnnotations()){
+                if(annotation instanceof PrimaryKey){
+                    primaryKey = field.getName();
+                }
+            }
+        }
+        return primaryKey;
+    }
+
+    //check if the file has more than one Primary keys
+    private void checkValidNumberOfPK(java.lang.reflect.Field[] fields){
+        int counter = 0;
+        for(java.lang.reflect.Field field : fields){
+            for(Annotation annotation : field.getDeclaredAnnotations()){
+                if(annotation instanceof PrimaryKey){
+                    counter+=1;
+                    if(counter>1){
+                        throw new IllegalArgumentException("Only One Primary key is allowed!");
+                    }
+                }
+            }
+        }
+    }
 
 }

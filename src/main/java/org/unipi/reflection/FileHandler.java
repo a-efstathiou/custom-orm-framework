@@ -1,5 +1,7 @@
 package org.unipi.reflection;
 
+import org.unipi.database.DatabaseMethodsClass;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -82,7 +84,10 @@ public class FileHandler {
 
                     //Write fields
                     writeFields(writer,fieldsStringList);
-
+                    //Write Create Method
+                    writeCreateMethod(writer, c);
+                    //Write DB Methods
+                    writeMethods(writer, c);
                     //Close the bufferedWriter
                     finalizeFile(writer);
                 }
@@ -135,7 +140,32 @@ public class FileHandler {
         writeOutput(writer,stringbuilder.toString());
     }
 
+    private void writeCreateMethod(BufferedWriter writer, Class<?> c){
+        List<FieldClass> allFieldClass = rh.getAllFieldClass(c.getDeclaredFields());
+        StringBuilder methodStringBuilder = DatabaseMethodsClass.createTable(allFieldClass,"Students");
+        System.out.println(methodStringBuilder);
+        //writeOutput(writer,methodStringBuilder.toString());
 
+
+    }
+
+    private void writeMethods(BufferedWriter writer, Class<?> c){
+        List<MethodClass> allMethods = rh.getMethods(c, c.getDeclaredFields());
+        for(MethodClass method : allMethods){
+            if(method.getDbMethodType().toLowerCase().equals("deleteOne".toLowerCase())){
+                StringBuilder methodStringBuilder = DatabaseMethodsClass.delete(method, "Students");
+                methodStringBuilder.append("\n");
+                System.out.println(methodStringBuilder);
+                //writeOutput(writer,methodStringBuilder.toString());
+            }
+            else if(method.getDbMethodType().toLowerCase().equals("SelectAll".toLowerCase())){
+                StringBuilder methodStringBuilder = DatabaseMethodsClass.selectAll("Students",null,null);
+                methodStringBuilder.append("\n");
+                System.out.println(methodStringBuilder);
+                //writeOutput(writer,methodStringBuilder.toString());
+            }
+        }
+    }
 
 
 }

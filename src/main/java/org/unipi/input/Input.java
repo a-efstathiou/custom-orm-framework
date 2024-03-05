@@ -3,6 +3,7 @@ package org.unipi.input;
 import org.unipi.annotations.DBMethod;
 import org.unipi.annotations.Database;
 import org.unipi.annotations.Field;
+import org.unipi.annotations.PrimaryKey;
 
 import java.util.List;
 
@@ -13,12 +14,14 @@ public class Input {
     private int something;
     private boolean isOpen;
     private String name;
+    @PrimaryKey
+    private String AM;
 
-    @DBMethod(type = "DeleteOne", paramName = "id")
-    public int deleteInputs(String id){
+    @DBMethod(type = "DeleteOne")
+    public int deleteInputs(String param){
         return 0;
     }
-    @DBMethod(type = "SelectAll", paramName = "")
+    @DBMethod(type = "SelectAll")
     public List<String> getAllStudents(){
         return null;
     }

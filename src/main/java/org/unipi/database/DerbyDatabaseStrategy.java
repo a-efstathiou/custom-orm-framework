@@ -61,5 +61,25 @@ public class DerbyDatabaseStrategy implements DatabaseStrategyInterface{
 
     }
 
+    @Override
+    public String getColymnType(String fieldType) {
+        String colType = fieldType.toUpperCase();
+        return switch (colType) {
+            case "INT","INTEGER" -> "INT";
+            case "LONG" -> "BIGINT";
+            /*case "SMALLINT" -> List.of(short.class , int.class);
+            case "TINYINT" -> List.of(byte.class, boolean.class);
+            case "NUMERIC","DECIMAL","DEC" -> List.of(BigDecimal.class);
+            case "REAL" -> List.of(float.class);
+           */ case "DOUBLE" -> "DOUBLE";
+            //case "CHARACTER","CHAR", "VARCHAR", "LONGVARCHAR" -> List.of(String.class);
+            case "STRING" -> "VARCHAR(20)";
+            case "BOOLEAN" -> "BOOLEAN";
+            case "DATE" -> "DATE";
+            case "DATETIME" -> "TIME";
+            //case "TIMESTAMP" -> List.of(Timestamp.class);
+            default -> throw new IllegalArgumentException("Unsupported column type: " + fieldType);
+        };
+    }
 
 }
