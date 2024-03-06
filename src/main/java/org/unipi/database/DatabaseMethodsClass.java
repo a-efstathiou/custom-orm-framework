@@ -1,15 +1,11 @@
 package org.unipi.database;
 
-import org.unipi.reflection.FieldClass;
-import org.unipi.reflection.MethodClass;
-
-import java.sql.Connection;
+import org.unipi.annotations.Required;
 import java.sql.SQLException;
 import java.sql.Statement;
+
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class DatabaseMethodsClass {
 
@@ -78,21 +74,43 @@ public class DatabaseMethodsClass {
         return deleteDBString;
     }
 
-    public static StringBuilder selectAll(String tableName,String outputFileName, Map<String,String> fields){
+    public static String selectAll(String tableName, Map<String,String> dataColumn,String className,List<String> parameters){
 
         StringBuilder finalStringBuilder = new StringBuilder();
 
-        finalStringBuilder.append("private static void selectAll(){\n")
+        finalStringBuilder
+                .append("private List<").append(className).append("> selectAll(){\n")
+                .append("\tList<").append(className).append("> list = new ArrayList<>();\n\n")
                 .append("    try {\n")
                 .append("        Connection connection = connect();\n")
                 .append("        Statement statement = connection.createStatement();\n")
                 .append("        String selectSQL = \"select * from ").append(tableName).append("\";\n")
                 .append("        ResultSet resultSet = statement.executeQuery(selectSQL);\n")
-                .append("        while(resultSet.next()){\n")
-                .append("            System.out.println(resultSet.getString(\"USERNAME\")+\",\"+resultSet.getString(\"PASSWORD\"));\n")
-                .append("            \n")
-                .append("            \n")
+                .append("        while(resultSet.next()){\n");
 
+        dataColumn.entrySet()
+                .forEach(entry -> {
+
+                    String type = entry.getValue();
+
+                    // Split the string based on one or more whitespace characters
+                    String[] parts = type.split("\\s+");
+                    // Retrieve the first part from the array
+                    String firstPart = parts[0];
+                    //Make only the 1st character of the string Upper Case
+                    String result = firstPart.substring(0, 1).toUpperCase() + firstPart.substring(1);
+
+                    finalStringBuilder.append("        \t")
+                            .append(entry.getValue()).append(" = ")
+                            .append("resultSet.get").append(result).append("(\"").append(entry.getKey()).append("\");\n");
+                });
+        finalStringBuilder
+                .append("\t\t\t").append(className).append(" ").append(className.toLowerCase()).append("1 = ").append("new ")
+                .append(className).append("(");
+        parameters.forEach(param -> finalStringBuilder.append(param).append(","));
+        finalStringBuilder.deleteCharAt(finalStringBuilder.length()-1).append(");\n");
+
+        finalStringBuilder
                 .append("        }\n")
                 .append("        statement.close();\n")
                 .append("        connection.close();\n")
@@ -100,20 +118,27 @@ public class DatabaseMethodsClass {
                 .append("    } catch (SQLException ex) {\n")
                 .append("        Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);\n")
                 .append("    }\n")
+                .append("\treturn list;\n")
                 .append("}");
 
 
 
-        return finalStringBuilder;
+
+
+
+        return finalStringBuilder.toString();
     }
 
     public static String getConnectMethodString(){
         StringBuilder stringbuilder = new StringBuilder();
 
-        stringbuilder.append("    public static Connection connect() {\n");
+        String connectionString = databaseContext.getConnectionString();
+
+        stringbuilder.append("    private static Connection connect() {\n");
+        stringbuilder.append("        String connectionString = \"").append(connectionString).append("\";\n");
         stringbuilder.append("        Connection connection = null;\n");
         stringbuilder.append("        try {\n");
-        stringbuilder.append("            connection = DriverManager.getConnection(").append(databaseContext.getConnectionString()).append(");\n");
+        stringbuilder.append("            connection = DriverManager.getConnection(connectionString);\n");
         stringbuilder.append("        } catch (SQLException ex) {\n");
         stringbuilder.append("            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);\n");
         stringbuilder.append("        }\n");

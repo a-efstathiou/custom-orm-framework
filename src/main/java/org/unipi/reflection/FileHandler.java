@@ -2,11 +2,14 @@ package org.unipi.reflection;
 
 import org.unipi.database.DatabaseMethodsClass;
 
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -80,10 +83,18 @@ public class FileHandler {
                     //Reflection
                     Class<?> c = rh.getInputClass(fullyQualifiedName);
                     rh.reflection(c,fileName);
+
                     List<String> fieldsStringList = rh.getFieldsString(c);
+                    Map<String,String> columns = rh.getDatabaseColumns(c);
+                    String tableName = rh.getTableName(c);
 
                     //Write fields
                     writeFields(writer,fieldsStringList);
+
+                    //Create constructor with only fields annotated with @Field
+                    List<String> parameters =createConstructor(writer,columns,fileNameWithoutExtention);
+                    System.out.println(DatabaseMethodsClass.selectAll(tableName,columns,fileNameWithoutExtention,parameters));
+
                     //Write Create Method
                     writeCreateMethod(writer, c);
                     //Write DB Methods
@@ -133,11 +144,36 @@ public class FileHandler {
         StringBuilder stringbuilder = new StringBuilder();
         stringbuilder.append("\n");
         for(String field : fieldsStringList){
-            stringbuilder.append("  ").append(field);
+            stringbuilder.append("\t").append(field);
         }
         stringbuilder.append("\n");
 
         writeOutput(writer,stringbuilder.toString());
+    }
+
+    public List<String> createConstructor(BufferedWriter writer,Map<String,String> fields,String className) {
+        StringBuilder sb = new StringBuilder();
+        List <String> parameters = new ArrayList<>();
+        sb.append("\t").append("public ").append(className).append("(");
+        fields.entrySet()
+                        .forEach( entry -> {
+                            String type = entry.getValue();
+                            // Split the string based on one or more whitespace characters
+                            String[] parts = type.split("\\s+");
+                            // Retrieve the first part from the array
+                            String firstPart = parts[0];
+                            //Make only the 1st character of the string Upper Case
+                            String lastPart = parts[1];
+                            sb.append(type).append(",");
+                            parameters.add(lastPart);
+                        });
+        sb.deleteCharAt(sb.length()-1).append(") {\n");
+        parameters.forEach( param ->  sb.append("\t\t\t this.").append(param).append(" = ").append(param).append(";\n"));
+        sb.append("\t}\n");
+
+        writeOutput(writer,sb.toString());
+
+        return parameters;
     }
 
     private void writeCreateMethod(BufferedWriter writer, Class<?> c){
@@ -166,6 +202,8 @@ public class FileHandler {
             }
         }
     }
+
+
 
 
 }
