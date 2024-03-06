@@ -13,14 +13,18 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+//This class is responsible for operations on files. It handles the writing on the files and calling the ReflectionHandler
+//to get the required parameters for its methods. It is essentially functioning as the main method of the program as everything
+//is done in this class.
 public class FileHandler {
-
-    //Η κλάση αυτή θα είναι υπεύθυνη για τα αρχεία.
 
     String outputDirectoryPath = "src/main/java/org/unipi/output/";
     ReflectionHandler rh = ReflectionHandler.getInstance();
 
 
+    //We use a design pattern to create a unique instance of FileHandler using
+    //Singleton Lazy Initialization with on-demand holder. In this case, since only Main calls for this class, a simple
+    //constructor would have done the same work, but we keep the design pattern in favor of sustainability.
     private FileHandler(){}
     private static class FileHandlerHolder {
         static FileHandler fileHandler = new FileHandler();
@@ -29,6 +33,7 @@ public class FileHandler {
         return FileHandlerHolder.fileHandler;
     }
 
+    //Writes in the output file
     public void writeOutput(BufferedWriter writer, String outputString){
 
         try {
@@ -39,6 +44,7 @@ public class FileHandler {
         }
     }
 
+    //Initializes the file. writes the package on top, the imports and the class name which is taken using i/o methods.
     public void initializeFile(BufferedWriter writer,String className){
         StringBuilder stringBuilder = new StringBuilder();
         String imports = getImports();
@@ -52,11 +58,15 @@ public class FileHandler {
 
     }
 
+    //Closes the file and terminates the BufferedWriter
     public void finalizeFile(BufferedWriter writer){
         writeOutput(writer,"}");
         closeBufferedWriter(writer);
     }
 
+    //Does the main work of the class. Scans the package directory input for files and for each one of them, it creates
+    //a new file in the output package directory with the same name as the Input File. It calls the ReflectionHandler to
+    //handle reflection related operations.
     public void handleInputFiles(){
         String filePath = "src/main/java/org/unipi/input/";
         File directory = new File(filePath);
@@ -72,26 +82,33 @@ public class FileHandler {
                     // Extracting the file name without extension
                     String fileNameWithoutExtention = fileName.substring(0, fileName.lastIndexOf('.'));
                     String fullyQualifiedName = "org.unipi.input."+fileNameWithoutExtention;
-                    System.out.println("Fully Qualified Class Name: " + fullyQualifiedName);
 
-
+                    //Creates a bufferedWriter for the file
                     BufferedWriter writer = createBufferedWriter(fileName);
                     //Create output file and initialize it
                     createOutputFile(writer, fileName);
                     initializeFile(writer,fileNameWithoutExtention);
+
                     // Output the file name
                     System.out.println("File Name: " + fileName);
 
-                    //Reflection
-                    Class<?> c = rh.getInputClass(fullyQualifiedName);
-                    rh.reflection(c,fileName);
+                    //----------Reflection--------------
 
+                    //Get class name
+                    Class<?> c = rh.getInputClass(fullyQualifiedName);
+                    //check if the number of PrimaryKey Annotations are correctly implemented
+                    rh.checkValidNumberOfPK(c);
+                    //set the strategy that is going to be used depending on the type of the @Database Annotation
+                    rh.setStrategy(c);
+
+                    //Returns a List of all fields
                     List<String> fieldsStringList = rh.getFieldsString(c);
+                    //Returns a Map<String, String>. The demand of this implementation is explained in the DatabaseMethodsClass
+                    // in the commends of the selectAll Method
                     Map<String,String> columns = rh.getDatabaseColumns(c);
+                    //Gets table name and dbName from the annotations
                     String tableName = rh.getTableName(c);
                     String dbName = rh.getDatabaseName(c);
-
-
 
                     //Write fields
                     writeFields(writer,fieldsStringList);
@@ -103,11 +120,11 @@ public class FileHandler {
                     List<String> parameters =createConstructor(writer,columns,fileNameWithoutExtention);
 
                     //Write Create Table Method
-                    writeCreateMethod(writer, c,tableName,fileNameWithoutExtention);
+                    writeCreateMethod(writer, c,tableName);
                     //Write DB Methods
                     writeMethods(writer, c,tableName,columns,fileNameWithoutExtention,parameters);
                     //Write connect method
-                    writeConnectMethod(writer,fileNameWithoutExtention,dbName);
+                    writeConnectMethod(writer,dbName);
                     //Close the bufferedWriter
                     finalizeFile(writer);
                 }
@@ -115,14 +132,13 @@ public class FileHandler {
                     Logger.getLogger(FileHandler.class.getName()).log(Level.SEVERE, "Error handling output file", ex);
                 }
 
-
-
             }
         } else {
             throw new IllegalArgumentException("At least one input file must be in the input package.");
         }
     }
 
+    //Creates the output file by writing the 1st line in it.
     public void createOutputFile(BufferedWriter writer, String fileName){
 
         try {
@@ -135,10 +151,12 @@ public class FileHandler {
 
     }
 
+    //Creates a BufferedWriter to be used in the methods.
     public BufferedWriter createBufferedWriter(String fileName) throws IOException {
         return new BufferedWriter(new FileWriter(outputDirectoryPath + fileName,false));
     }
 
+    //Closes the chosen BufferedWriter
     public void closeBufferedWriter(BufferedWriter writer) {
         if (writer != null) {
             try {
@@ -149,6 +167,7 @@ public class FileHandler {
         }
     }
 
+    //Writes in the output files the fields of the Input file
     private void writeFields(BufferedWriter writer,List<String> fieldsStringList) {
         StringBuilder stringbuilder = new StringBuilder();
         stringbuilder.append("\n");
@@ -160,6 +179,8 @@ public class FileHandler {
         writeOutput(writer,stringbuilder.toString());
     }
 
+    //Creates a constructor only with the fields annotated with @Field. It is used in the selectAll method of the database
+    //to create an object which in turn is added to the List and returned to the user
     public List<String> createConstructor(BufferedWriter writer,Map<String,String> fields,String className) {
         StringBuilder sb = new StringBuilder();
         List <String> parameters = new ArrayList<>();
@@ -185,20 +206,21 @@ public class FileHandler {
         return parameters;
     }
 
-    private void writeCreateMethod(BufferedWriter writer, Class<?> c,String tableName,String className){
+    //Writes in the output file the create table Method
+    private void writeCreateMethod(BufferedWriter writer, Class<?> c,String tableName){
         List<FieldClass> allFieldClass = rh.getAllFieldClass(c.getDeclaredFields());
-        StringBuilder methodStringBuilder = DatabaseMethodsClass.createTable(allFieldClass,tableName,className);
-        System.out.println(methodStringBuilder);
+        StringBuilder methodStringBuilder = DatabaseMethodsClass.createTable(allFieldClass,tableName);
         writeOutput(writer,methodStringBuilder.toString());
 
     }
 
+    //Writes the methods annotated with @DBMethod. Future additions should be added here in the for loop.
     private void writeMethods(BufferedWriter writer, Class<?> c,String tableName,Map<String,String> dataColumn,String className,List<String> parameters){
         List<MethodClass> allMethods = rh.getMethods(c, c.getDeclaredFields());
         StringBuilder sb = new StringBuilder();
         for(MethodClass method : allMethods){
             if(method.getDbMethodType().equalsIgnoreCase("deleteOne")){
-                sb.append(DatabaseMethodsClass.delete(method, tableName, className));
+                sb.append(DatabaseMethodsClass.delete(method, tableName));
                 sb.append("\n");
             }
             else if(method.getDbMethodType().equalsIgnoreCase("SelectAll")){
@@ -210,21 +232,22 @@ public class FileHandler {
         writeOutput(writer,sb.toString());
     }
 
-    private void writeConnectMethod(BufferedWriter writer,String className,String dbName){
-        writeOutput(writer,DatabaseMethodsClass.getConnectMethodString(className,dbName));
+    //Writes the connect method for the database in the output file
+    private void writeConnectMethod(BufferedWriter writer,String dbName){
+        writeOutput(writer,DatabaseMethodsClass.getConnectMethodString(dbName));
     }
 
+    //Writes the necessary imports for the database methods to work
     private String getImports(){
         StringBuilder sb = new StringBuilder();
         sb.append("\nimport java.sql.*;\n" +
                 "import java.util.ArrayList;\n" +
-                "import java.util.List;\n" +
-                "import java.util.logging.Level;\n" +
-                "import java.util.logging.Logger;\n");
+                "import java.util.List;\n");
 
         return sb.toString();
     }
 
+    //Writes a main method in the output file
     private void writeMainMethod(BufferedWriter writer){
         String main = "\tpublic static void main(String[] args) {\n" +
                 "\t\t\n" +

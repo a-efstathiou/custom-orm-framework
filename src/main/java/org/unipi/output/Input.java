@@ -4,8 +4,6 @@ package org.unipi.output;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 public class Input {
 
 	private int something;
@@ -35,9 +33,28 @@ public class Input {
 			statement.close();
 			connection.close();
 		} catch (SQLException ex) {
-			Logger.getLogger(Input.class.getName()).log(Level.SEVERE, null, ex);
+			System.err.println(ex.getMessage());
 		}
 	}
+	public static int deleteInputs(String Id){
+	   int count=0;
+	   try {
+	       Connection connection = connect();
+	       String insertSQL = "DELETE FROM Student WHERE Id = ?";
+	       PreparedStatement preparedStatement = connection.prepareStatement(insertSQL);
+	       preparedStatement.setString(1,Id );
+	       count = preparedStatement.executeUpdate();
+	       if(count>0){
+	           System.out.println(count+" record deleted");
+	       }
+	       preparedStatement.close();
+	       connection.close();
+	   } catch (SQLException ex) {
+	       System.err.println(ex.getMessage());
+	   }
+	return count;
+	}
+
 	public static List<Input> getAllStudents(){
 		List<Input> list = new ArrayList<>();
 
@@ -57,28 +74,9 @@ public class Input {
 			connection.close();
 			System.out.println("Done!");
 		} catch (SQLException ex) {
-				Logger.getLogger(Input.class.getName()).log(Level.SEVERE, null, ex);
+				System.err.println(ex.getMessage());
 		}
 		return list;
-	}
-
-	public static int deleteInputs(String Id){
-	   int count=0;
-	   try {
-	       Connection connection = connect();
-	       String insertSQL = "DELETE FROM Student WHERE Id = ?";
-	       PreparedStatement preparedStatement = connection.prepareStatement(insertSQL);
-	       preparedStatement.setString(1,Id );
-	       count = preparedStatement.executeUpdate();
-	       if(count>0){
-	           System.out.println(count+" record deleted");
-	       }
-	       preparedStatement.close();
-	       connection.close();
-	   } catch (SQLException ex) {
-	       Logger.getLogger(Input.class.getName()).log(Level.SEVERE, null, ex);
-	   }
-	return count;
 	}
 
     private static Connection connect() {
@@ -87,7 +85,7 @@ public class Input {
         try {
             connection = DriverManager.getConnection(connectionString);
         } catch (SQLException ex) {
-            Logger.getLogger(Input.class.getName()).log(Level.SEVERE, null, ex);
+            System.err.println(ex.getMessage());
         }
     return connection;
     }

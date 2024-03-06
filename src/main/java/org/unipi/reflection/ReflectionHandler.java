@@ -10,35 +10,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class ReflectionHandler {
 
-    FileHandler fh = FileHandler.getInstance();
+
     DatabaseContext databaseContext = DatabaseContext.getInstance();
 
     private List<FieldClass> fieldClassList;
 
     private ReflectionHandler(){
         fieldClassList = new ArrayList<>();
-    }
-
-    public String getDatabaseName(Class<?> c) {
-        String dbName = "";
-        //Reflection to read annotations
-        Annotation[] annotations = c.getAnnotations();
-
-        //Get dbName
-        for(Annotation annotation : annotations) {
-            if (annotation instanceof Database dbAnnotation) {
-                dbName = dbAnnotation.name();
-                return dbName;
-            }
-        }
-
-        return dbName;
     }
 
     private static class ReflectionHandlerHolder {
@@ -48,36 +29,23 @@ public class ReflectionHandler {
         return ReflectionHandlerHolder.reflectionHandler;
     }
 
-    public void reflection(Class<?> c,String outputFileName){
-        //List to store the fields.
-        // Create a HashMap to store name and type associations
-        Map<String, String> fieldMap = new HashMap<>();
-        String dbName = "";
-        String tableName = "";
+    public void setStrategy(Class<?> c){
 
             //Reflection to read annotations
             Annotation[] annotations = c.getAnnotations();
 
-            //First loop to set strategy and dbName
+            //Set strategy
             for(Annotation annotation : annotations) {
                 System.out.println("Annotation Type: " + annotation.annotationType());
                 if (annotation instanceof Database dbAnnotation) {
-                    dbName = dbAnnotation.name();
-                    System.out.println(dbAnnotation.name());
-                    System.out.println(dbAnnotation.type().toLowerCase());
-
                     setDatabaseStrategy(dbAnnotation.type(), databaseContext);
-
                 }
-                if(annotation instanceof Table tableAnnotation) {
-                    tableName = tableAnnotation.name();
-                }
-
             }
-            checkValidNumberOfPK(c.getDeclaredFields()); //check if the number of PK is less than 2.
-            getDatabaseColumns(c);
 
+    }
 
+    public void checkValidNumberOfPK(Class<?> c){
+        checkValidNumberOfPK(c.getDeclaredFields()); //check if the number of PK is less than 2
     }
 
     public List<String> getFieldsString(Class<?> c){
@@ -198,9 +166,6 @@ public class ReflectionHandler {
         }
     }
 
-/*    public List<FieldClass> getFieldClassList() {
-        return fieldClassList;
-    }*/
 
     private boolean isFieldTypeOk(java.lang.reflect.Field field, List<Class<?>> acceptableFields){
         return acceptableFields.contains(field.getType());
@@ -308,6 +273,22 @@ public class ReflectionHandler {
                 }
             }
         }
+    }
+
+    public String getDatabaseName(Class<?> c) {
+        String dbName = "";
+        //Reflection to read annotations
+        Annotation[] annotations = c.getAnnotations();
+
+        //Get dbName
+        for(Annotation annotation : annotations) {
+            if (annotation instanceof Database dbAnnotation) {
+                dbName = dbAnnotation.name();
+                return dbName;
+            }
+        }
+
+        return dbName;
     }
 
 }

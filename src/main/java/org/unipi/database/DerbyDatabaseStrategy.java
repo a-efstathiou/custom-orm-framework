@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+//Strategy for Derby Database
 public class DerbyDatabaseStrategy implements DatabaseStrategyInterface{
 
 
@@ -14,31 +15,7 @@ public class DerbyDatabaseStrategy implements DatabaseStrategyInterface{
     public String getConnectionString(String dbName) {
         return "jdbc:derby:"+dbName+";create=true";
     }
-   /* @Override
-    public StringBuilder createDatabase(String dbName) {
-        StringBuilder createDBString = new StringBuilder("CREATE DATABASE "+dbName);
-        return createDBString;
-    }
 
-    @Override
-    public void connect(String dbName) {
-
-    }
-
-    @Override
-    public void disconnect(Connection connection) {
-        try {
-            if (connection != null) {
-                connection.close();
-                System.out.println("Disconnected from the Derby database");
-            } else {
-                System.out.println("Connection was already closed or null");
-            }
-        }
-        catch (SQLException ex) {
-            Logger.getLogger(DerbyDatabaseStrategy.class.getName()).log(Level.SEVERE, "Error disconnecting from the database", ex);
-        }
-    }*/
 
     @Override
     public List<Class<?>> mapColumnType(String columnType){
@@ -66,17 +43,11 @@ public class DerbyDatabaseStrategy implements DatabaseStrategyInterface{
         return switch (colType) {
             case "INT","INTEGER" -> "INT";
             case "LONG" -> "BIGINT";
-            /*case "SMALLINT" -> List.of(short.class , int.class);
-            case "TINYINT" -> List.of(byte.class, boolean.class);
-            case "NUMERIC","DECIMAL","DEC" -> List.of(BigDecimal.class);
-            case "REAL" -> List.of(float.class);
-           */ case "DOUBLE" -> "DOUBLE";
-            //case "CHARACTER","CHAR", "VARCHAR", "LONGVARCHAR" -> List.of(String.class);
+            case "DOUBLE" -> "DOUBLE";
             case "STRING" -> "VARCHAR(20)";
             case "BOOLEAN" -> "BOOLEAN";
             case "DATE" -> "DATE";
             case "DATETIME" -> "TIME";
-            //case "TIMESTAMP" -> List.of(Timestamp.class);
             default -> throw new IllegalArgumentException("Unsupported field type: " + fieldType);
         };
     }

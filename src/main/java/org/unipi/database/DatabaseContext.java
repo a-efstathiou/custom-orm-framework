@@ -1,18 +1,15 @@
 package org.unipi.database;
 
-import org.unipi.Main;
-import org.unipi.reflection.FileHandler;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
+
+//This is the class that is responsible for calling the strategy methods.
 public class DatabaseContext{
 
     private DatabaseStrategyInterface strategy;
+
+    //We use a design pattern to create a unique instance of DatabaseContext using
+    //Singleton Lazy Initialization with on-demand holder
     private DatabaseContext(){}
     private static class DatabaseContextHolder {
         static DatabaseContext databaseContext = new DatabaseContext();
@@ -21,17 +18,23 @@ public class DatabaseContext{
         return DatabaseContextHolder.databaseContext;
     }
 
+
+    //Sets the strategy
     public void setStrategy(DatabaseStrategyInterface strategy) {
         this.strategy = strategy;
     }
 
+    //Returns the connection string
     public String getConnectionString(String dbName) {
         return strategy.getConnectionString(dbName);
     }
 
+    //maps the type of the field to a database column type
     public List<Class<?>> mapColumnType(String columnType){
         return strategy.mapColumnType(columnType);
     }
+
+    //does the reverse of mapColumnTypes
     public String getColumnType(String fieldType){
         return strategy.getColymnType(fieldType);
     }
