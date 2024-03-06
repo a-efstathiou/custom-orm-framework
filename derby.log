@@ -1,7 +1,7 @@
 ----------------------------------------------------------------
-Wed Mar 06 20:03:58 EET 2024:
-Booting Derby version The Apache Software Foundation - Apache Derby - 10.17.1.0 - (1913217): instance a816c00e-018e-14ef-b701-00000f600000 
-on database directory A:\Εργασία και σπουδές\μεταπτυχιακό παπει\Code\Java\custom-orm-framework\Database with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@3fee733d 
+Wed Mar 06 23:35:01 EET 2024:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.17.1.0 - (1913217): instance a816c00e-018e-15b0-f033-00000f600000 
+on database directory A:\Εργασία και σπουδές\μεταπτυχιακό παπει\Code\Java\custom-orm-framework\UnipiDB with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@3fee733d 
 Loaded from file:/C:/Users/thano/.m2/repository/org/apache/derby/derby/10.17.1.0/derby-10.17.1.0.jar
 java.vendor=Oracle Corporation
 java.runtime.version=21.0.1+12-29

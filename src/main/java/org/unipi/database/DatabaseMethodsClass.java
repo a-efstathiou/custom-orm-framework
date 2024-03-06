@@ -145,7 +145,7 @@ public class DatabaseMethodsClass {
         finalStringBuilder.deleteCharAt(finalStringBuilder.length()-1).append(");\n");
 
         finalStringBuilder
-                .append("\t\t\t\tlist.add(input1);\n")
+                .append("\t\t\t\tlist.add(").append(className.toLowerCase()).append("1);\n")
                 .append("\t\t\t}\n")
                 .append("\t\t\tstatement.close();\n")
                 .append("\t\t\tconnection.close();\n")

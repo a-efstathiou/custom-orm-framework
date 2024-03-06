@@ -8,21 +8,21 @@ import org.unipi.annotations.PrimaryKey;
 
 import java.util.List;
 
-@Database(name="UnipiDB",type="Derby")
-@Table(name="Student")
-public class Input {
+@Database(name="UnipiDB",type="H2")
+@Table(name="Students")
+public class Student {
 
-    @Field(name="somethingName",type="integer")
-    private int something;
-    @Field(name="availability",type="Boolean")
-    private boolean isOpen;
+    @Field(name="name",type="varchar")
     private String name;
+    @Field(name="isStudent",type="Boolean")
+    private boolean isStudent;
+    private String lastName;
     @PrimaryKey
     @Field(name="Id",type="VarChar")
     private String AM;
 
     @DBMethod(type = "DeleteOne")
-    public int deleteInputs(String param){
+    public int deleteStudent(String param){
         return 0;
     }
     @DBMethod(type = "SelectAll")

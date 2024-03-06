@@ -1,21 +1,13 @@
 package org.unipi.reflection;
 
+//It is a class that represents a DB Method. It contains all its characteristics.
 public class MethodClass {
-    private String modifier;
-    private String dbMethodType;
-    private String returnType;
-    private String name;
-    private String paramType;
-    private String paramName;
-
-    public MethodClass(String modifier, String dbMethodType, String returnType, String name, String paramType, String paramName) {
-        this.modifier = modifier;
-        this.dbMethodType = dbMethodType;
-        this.returnType = returnType;
-        this.name = name;
-        this.paramType = paramType;
-        this.paramName = paramName;
-    }
+    private String modifier; //Modifier (public, private, protected)
+    private String dbMethodType; //DB Method type (SelectAll or DeleteOne)
+    private String returnType; //the return type of the method
+    private String name; //the given name of the method e.g. getAllStudents
+    private String paramType; //The type of its parameter
+    private String paramName; //The name of its parameter.
 
     public MethodClass(){}
     public String getModifier() {

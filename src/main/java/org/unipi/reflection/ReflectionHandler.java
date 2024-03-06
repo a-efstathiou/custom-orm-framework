@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+//It's the class that contains methods which use reflection in order
+//to get and handle parts of the Input class.
 public class ReflectionHandler {
 
 
@@ -22,6 +24,8 @@ public class ReflectionHandler {
         fieldClassList = new ArrayList<>();
     }
 
+
+    //Singleton Design Pattern in order to have only one reference of the class
     private static class ReflectionHandlerHolder {
         static ReflectionHandler reflectionHandler = new ReflectionHandler();
     }
@@ -29,6 +33,7 @@ public class ReflectionHandler {
         return ReflectionHandlerHolder.reflectionHandler;
     }
 
+    //sets the strategy
     public void setStrategy(Class<?> c){
 
             //Reflection to read annotations
@@ -48,6 +53,7 @@ public class ReflectionHandler {
         checkValidNumberOfPK(c.getDeclaredFields()); //check if the number of PK is less than 2
     }
 
+    //gets all the fields' strings including their modifiers, types and names
     public List<String> getFieldsString(Class<?> c){
         List<String> fieldsString = new ArrayList<>();
 
@@ -64,24 +70,25 @@ public class ReflectionHandler {
         return fieldsString;
     }
 
+    //gets the columns that are saved in the DB
     public Map<String,String> getDatabaseColumns(Class<?> c){
 
 
         Map<String,String> dataColumn = new HashMap<>();
         //Reflection to get Fields
         java.lang.reflect.Field[] declaredFields = c.getDeclaredFields();
-
+        //loops all the fields.
         for(java.lang.reflect.Field field : declaredFields){
 
             Annotation[] annotations = field.getAnnotations();
 
-
+            //loops the annotations
             for (Annotation annotation : annotations) {
                 if(annotation instanceof Field fieldAnnotation){
                     String fieldType = fieldAnnotation.type();
                     String fieldName = fieldAnnotation.name();
                     try {
-                        checkFields(field, fieldType);
+                        checkFields(field, fieldType);//check if common.
                     }
                     catch (IllegalArgumentException ex){
                         ex.printStackTrace();
@@ -118,7 +125,7 @@ public class ReflectionHandler {
                     if(method.getParameters().length>1){
                         throw new IllegalArgumentException("2 or more parameters are not allowed in DBMethods!");
                     }
-                    else if(method.getParameters().length == 1){
+                    else if(method.getParameters().length == 1){ //if it has one parameter gets the parameters
                         String fieldNameFromAnnotation = getFieldNameFromAnnotation(allFields);
                         if(fieldNameFromAnnotation==null){
                             throw new IllegalArgumentException("You have not assigned a Primary key!");
@@ -136,9 +143,8 @@ public class ReflectionHandler {
         return methodClassesList;
     }
 
-    //Get th
 
-
+    //Get the name of the class
     public Class<?> getInputClass(String fullyQualifiedName){
         try {
             // Dynamically load the class
@@ -148,7 +154,7 @@ public class ReflectionHandler {
             throw new RuntimeException();
         }
     }
-
+    //sets the DB strategy
     private void setDatabaseStrategy(String dbType, DatabaseContext context){
         switch(dbType.toLowerCase()){
             case "derby" -> context.setStrategy(new DerbyDatabaseStrategy());
@@ -158,6 +164,8 @@ public class ReflectionHandler {
         }
     }
 
+    //check if the type of the field is common with the type of the Field Annotation
+    //For example String must be Text in Sqlite.
     private void checkFields(java.lang.reflect.Field field, String fieldType){
         List<Class<?>> acceptableFields = databaseContext.mapColumnType(fieldType);
         if(!isFieldTypeOk(field,acceptableFields)){
@@ -166,11 +174,12 @@ public class ReflectionHandler {
         }
     }
 
-
+    //Checks if a field is inside the acceptable fields of the database columns map.
     private boolean isFieldTypeOk(java.lang.reflect.Field field, List<Class<?>> acceptableFields){
         return acceptableFields.contains(field.getType());
     }
 
+    //gets the name of the table.
     public String getTableName(Class<?> c){
         //Reflection to read annotations
         Annotation[] annotations = c.getAnnotations();
@@ -185,6 +194,8 @@ public class ReflectionHandler {
         return tableName;
     }
 
+    //That method maps the returned integer of the getModifier (Reflection)
+    //with the string word.
     private String mapModifiers(int code){
         if(Modifier.isPublic(code)){
             return "public";
@@ -208,7 +219,7 @@ public class ReflectionHandler {
 
             //True if the field is annotated with @Field
             boolean hasFieldAnnotation = false;
-
+            //sets the annotation that the field has.
             for(Annotation annotation : field.getDeclaredAnnotations()){
                 if(annotation instanceof PrimaryKey){
                     fieldClass.setPrimaryKey(true);
@@ -224,6 +235,7 @@ public class ReflectionHandler {
                     fieldClass.setName(fieldAnnotation.name());
                 }
             }
+            //sets the column type that whom the field is saved on the DB
             fieldClass.setColumnType(databaseContext.getColumnType(field.getType().getSimpleName()));
             if(hasFieldAnnotation){
                 fieldClassList.add(fieldClass);
@@ -235,6 +247,7 @@ public class ReflectionHandler {
 
     //finds the name from the @Field Annotation using reflection
     //returns null if no primary key is present
+    //A PK must have both annotations of PrimaryKey and Field.
     private String getFieldNameFromAnnotation(java.lang.reflect.Field[] fields){
         String fieldName="";
 
@@ -252,6 +265,7 @@ public class ReflectionHandler {
                 }
 
             }
+            //return the PK name if it is both PK and Field of DB
             if(hasPrimaryKey && isField){
                 return fieldName;
             }
@@ -275,6 +289,7 @@ public class ReflectionHandler {
         }
     }
 
+    //get the DB name from the Database annotations
     public String getDatabaseName(Class<?> c) {
         String dbName = "";
         //Reflection to read annotations
