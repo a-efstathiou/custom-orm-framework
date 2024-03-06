@@ -18,6 +18,7 @@ public class Input {
     private boolean isOpen;
     private String name;
     @PrimaryKey
+    @Field(name="Id",type="VarChar")
     private String AM;
 
     @DBMethod(type = "DeleteOne")

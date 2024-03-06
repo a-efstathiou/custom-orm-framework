@@ -41,9 +41,11 @@ public class FileHandler {
 
     public void initializeFile(BufferedWriter writer,String className){
         StringBuilder stringBuilder = new StringBuilder();
+        String imports = getImports();
         // Write content to the file
         stringBuilder
                 .append("package org.unipi.output;\n\n")
+                .append(imports)
                 .append("public class ").append(className).append(" {\n")
         ;
         writeOutput(writer,stringBuilder.toString());
@@ -55,7 +57,7 @@ public class FileHandler {
         closeBufferedWriter(writer);
     }
 
-    public void findFileNames(){
+    public void handleInputFiles(){
         String filePath = "src/main/java/org/unipi/input/";
         File directory = new File(filePath);
         File[] files = directory.listFiles();
@@ -87,18 +89,25 @@ public class FileHandler {
                     List<String> fieldsStringList = rh.getFieldsString(c);
                     Map<String,String> columns = rh.getDatabaseColumns(c);
                     String tableName = rh.getTableName(c);
+                    String dbName = rh.getDatabaseName(c);
+
+
 
                     //Write fields
                     writeFields(writer,fieldsStringList);
 
+                    //Write main method
+                    writeMainMethod(writer);
+
                     //Create constructor with only fields annotated with @Field
                     List<String> parameters =createConstructor(writer,columns,fileNameWithoutExtention);
-                    System.out.println(DatabaseMethodsClass.selectAll(tableName,columns,fileNameWithoutExtention,parameters));
 
-                    //Write Create Method
-                    writeCreateMethod(writer, c);
+                    //Write Create Table Method
+                    writeCreateMethod(writer, c,tableName,fileNameWithoutExtention);
                     //Write DB Methods
-                    writeMethods(writer, c);
+                    writeMethods(writer, c,tableName,columns,fileNameWithoutExtention,parameters);
+                    //Write connect method
+                    writeConnectMethod(writer,fileNameWithoutExtention,dbName);
                     //Close the bufferedWriter
                     finalizeFile(writer);
                 }
@@ -169,40 +178,59 @@ public class FileHandler {
                         });
         sb.deleteCharAt(sb.length()-1).append(") {\n");
         parameters.forEach( param ->  sb.append("\t\t\t this.").append(param).append(" = ").append(param).append(";\n"));
-        sb.append("\t}\n");
+        sb.append("\t}\n\n");
 
         writeOutput(writer,sb.toString());
 
         return parameters;
     }
 
-    private void writeCreateMethod(BufferedWriter writer, Class<?> c){
+    private void writeCreateMethod(BufferedWriter writer, Class<?> c,String tableName,String className){
         List<FieldClass> allFieldClass = rh.getAllFieldClass(c.getDeclaredFields());
-        StringBuilder methodStringBuilder = DatabaseMethodsClass.createTable(allFieldClass,"Students");
+        StringBuilder methodStringBuilder = DatabaseMethodsClass.createTable(allFieldClass,tableName,className);
         System.out.println(methodStringBuilder);
-        //writeOutput(writer,methodStringBuilder.toString());
-
+        writeOutput(writer,methodStringBuilder.toString());
 
     }
 
-    private void writeMethods(BufferedWriter writer, Class<?> c){
+    private void writeMethods(BufferedWriter writer, Class<?> c,String tableName,Map<String,String> dataColumn,String className,List<String> parameters){
         List<MethodClass> allMethods = rh.getMethods(c, c.getDeclaredFields());
+        StringBuilder sb = new StringBuilder();
         for(MethodClass method : allMethods){
-            if(method.getDbMethodType().toLowerCase().equals("deleteOne".toLowerCase())){
-                StringBuilder methodStringBuilder = DatabaseMethodsClass.delete(method, "Students");
-                methodStringBuilder.append("\n");
-                System.out.println(methodStringBuilder);
-                //writeOutput(writer,methodStringBuilder.toString());
+            if(method.getDbMethodType().equalsIgnoreCase("deleteOne")){
+                sb.append(DatabaseMethodsClass.delete(method, tableName, className));
+                sb.append("\n");
             }
-            else if(method.getDbMethodType().toLowerCase().equals("SelectAll".toLowerCase())){
-                StringBuilder methodStringBuilder = DatabaseMethodsClass.selectAll("Students",null,null);
-                methodStringBuilder.append("\n");
-                System.out.println(methodStringBuilder);
-                //writeOutput(writer,methodStringBuilder.toString());
+            else if(method.getDbMethodType().equalsIgnoreCase("SelectAll")){
+                sb.append(DatabaseMethodsClass.selectAll(method,tableName,dataColumn,className,parameters));
+                sb.append("\n");
             }
         }
+
+        writeOutput(writer,sb.toString());
     }
 
+    private void writeConnectMethod(BufferedWriter writer,String className,String dbName){
+        writeOutput(writer,DatabaseMethodsClass.getConnectMethodString(className,dbName));
+    }
+
+    private String getImports(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("\nimport java.sql.*;\n" +
+                "import java.util.ArrayList;\n" +
+                "import java.util.List;\n" +
+                "import java.util.logging.Level;\n" +
+                "import java.util.logging.Logger;\n");
+
+        return sb.toString();
+    }
+
+    private void writeMainMethod(BufferedWriter writer){
+        String main = "\tpublic static void main(String[] args) {\n" +
+                "\t\t\n" +
+                "\t}\n\n";
+        writeOutput(writer,main);
+    }
 
 
 

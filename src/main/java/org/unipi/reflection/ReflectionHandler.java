@@ -6,7 +6,6 @@ import org.unipi.database.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +24,23 @@ public class ReflectionHandler {
     private ReflectionHandler(){
         fieldClassList = new ArrayList<>();
     }
+
+    public String getDatabaseName(Class<?> c) {
+        String dbName = "";
+        //Reflection to read annotations
+        Annotation[] annotations = c.getAnnotations();
+
+        //Get dbName
+        for(Annotation annotation : annotations) {
+            if (annotation instanceof Database dbAnnotation) {
+                dbName = dbAnnotation.name();
+                return dbName;
+            }
+        }
+
+        return dbName;
+    }
+
     private static class ReflectionHandlerHolder {
         static ReflectionHandler reflectionHandler = new ReflectionHandler();
     }
@@ -61,9 +77,6 @@ public class ReflectionHandler {
             checkValidNumberOfPK(c.getDeclaredFields()); //check if the number of PK is less than 2.
             getDatabaseColumns(c);
 
-            //Replace tableName with the name taken from reflection
-            //System.out.println(DatabaseMethodsClass.selectAll("Students",outputFileName,fieldMap));
-        System.out.println(DatabaseMethodsClass.getConnectMethodString());
 
     }
 
@@ -138,13 +151,13 @@ public class ReflectionHandler {
                         throw new IllegalArgumentException("2 or more parameters are not allowed in DBMethods!");
                     }
                     else if(method.getParameters().length == 1){
-                        String primaryKey = findPrimaryKey(allFields);
-                        if(primaryKey==null){
+                        String fieldNameFromAnnotation = getFieldNameFromAnnotation(allFields);
+                        if(fieldNameFromAnnotation==null){
                             throw new IllegalArgumentException("You have not assigned a Primary key!");
                         }
                         else {
                             //gets the param
-                            methodFound.setParamName(primaryKey);
+                            methodFound.setParamName(fieldNameFromAnnotation);
                             methodFound.setParamType(method.getParameters()[0].getType().getSimpleName());
                         }
                     }
@@ -215,14 +228,22 @@ public class ReflectionHandler {
             return "private";
         }
         else {
-            return"protected";
+            return "protected";
         }
     }
 
+
     //get all fieldClass objects
     public List<FieldClass> getAllFieldClass(java.lang.reflect.Field[] fields){
+
+        //We only care about the fields that have the annotation @Field in them
+
         for(java.lang.reflect.Field field : fields){
             FieldClass fieldClass = new FieldClass();
+
+            //True if the field is annotated with @Field
+            boolean hasFieldAnnotation = false;
+
             for(Annotation annotation : field.getDeclaredAnnotations()){
                 if(annotation instanceof PrimaryKey){
                     fieldClass.setPrimaryKey(true);
@@ -233,26 +254,46 @@ public class ReflectionHandler {
                 if(annotation instanceof NotNull){
                     fieldClass.setNotNull(true);
                 }
+                if(annotation instanceof Field fieldAnnotation){
+                    hasFieldAnnotation = true;
+                    fieldClass.setName(fieldAnnotation.name());
+                }
             }
-            fieldClass.setName(field.getName());
             fieldClass.setColumnType(databaseContext.getColumnType(field.getType().getSimpleName()));
-            fieldClassList.add(fieldClass);
+            if(hasFieldAnnotation){
+                fieldClassList.add(fieldClass);
+            }
         }
         return fieldClassList;
     }
 
-    //finds the PK between the fields
-    private String findPrimaryKey(java.lang.reflect.Field[] fields){
-        String primaryKey = null;
+
+    //finds the name from the @Field Annotation using reflection
+    //returns null if no primary key is present
+    private String getFieldNameFromAnnotation(java.lang.reflect.Field[] fields){
+        String fieldName="";
+
         for(java.lang.reflect.Field field : fields){
+            boolean hasPrimaryKey = false;
+            boolean isField = false;
             for(Annotation annotation : field.getDeclaredAnnotations()){
+
                 if(annotation instanceof PrimaryKey){
-                    primaryKey = field.getName();
+                    hasPrimaryKey = true;
                 }
+                if(annotation instanceof Field fieldAnnotation){
+                    isField = true;
+                    fieldName = fieldAnnotation.name();
+                }
+
+            }
+            if(hasPrimaryKey && isField){
+                return fieldName;
             }
         }
-        return primaryKey;
+        return null;
     }
+
 
     //check if the file has more than one Primary keys
     private void checkValidNumberOfPK(java.lang.reflect.Field[] fields){

@@ -11,8 +11,7 @@ public class DerbyDatabaseStrategy implements DatabaseStrategyInterface{
 
 
     @Override
-    public String getConnectionString() {
-        String dbName= "Database";
+    public String getConnectionString(String dbName) {
         return "jdbc:derby:"+dbName+";create=true";
     }
    /* @Override
@@ -78,7 +77,7 @@ public class DerbyDatabaseStrategy implements DatabaseStrategyInterface{
             case "DATE" -> "DATE";
             case "DATETIME" -> "TIME";
             //case "TIMESTAMP" -> List.of(Timestamp.class);
-            default -> throw new IllegalArgumentException("Unsupported column type: " + fieldType);
+            default -> throw new IllegalArgumentException("Unsupported field type: " + fieldType);
         };
     }
 

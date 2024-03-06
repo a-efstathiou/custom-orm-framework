@@ -25,8 +25,8 @@ public class DatabaseContext{
         this.strategy = strategy;
     }
 
-    public String getConnectionString() {
-        return strategy.getConnectionString();
+    public String getConnectionString(String dbName) {
+        return strategy.getConnectionString(dbName);
     }
 
     public List<Class<?>> mapColumnType(String columnType){
@@ -36,28 +36,4 @@ public class DatabaseContext{
         return strategy.getColymnType(fieldType);
     }
 
-
-    public Connection connect(String dbName) {
-        Connection connection = null;
-        try {
-            connection = DriverManager.getConnection(getConnectionString());
-        } catch (SQLException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return connection;
-    }
-
-    public void disconnect(Connection connection) {
-        try {
-            if (connection != null) {
-                connection.close();
-                System.out.println("Disconnected from the database");
-            } else {
-                System.out.println("Connection was already closed or null");
-            }
-        }
-        catch (SQLException ex) {
-            Logger.getLogger(DerbyDatabaseStrategy.class.getName()).log(Level.SEVERE, "Error disconnecting from the database", ex);
-        }
-    }
 }

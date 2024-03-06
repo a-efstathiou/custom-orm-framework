@@ -9,8 +9,8 @@ import java.util.List;
 public class SQLiteDatabaseStrategy implements DatabaseStrategyInterface{
 
     @Override
-    public String getConnectionString() { ///////////////   WRONG STRING
-        return "jdbc:sqlite:javaprotal5.db";
+    public String getConnectionString(String dbName) {
+        return "jdbc:sqlite:"+dbName+";create=true";
     }
 
 

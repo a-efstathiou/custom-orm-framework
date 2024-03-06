@@ -2,6 +2,7 @@ package org.unipi.reflection;
 
 import java.util.function.BinaryOperator;
 
+//Field class represent the Field with all the annotations on it.
 public class FieldClass {
     private String name, columnType;
     private boolean isPrimaryKey, isUnique, isNotNull;

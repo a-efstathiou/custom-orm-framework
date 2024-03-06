@@ -13,7 +13,8 @@ public class Main {
 
         FileHandler fh = FileHandler.getInstance();
 
-        fh.findFileNames();
+        fh.handleInputFiles();
+
 
 
 
