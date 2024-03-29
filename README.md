@@ -129,7 +129,7 @@ public class Student {
 	}
 
     private static Connection connect() {
-        String connectionString = "jdbc:sqlite:UnipiDB;create=true";
+        String connectionString = "jdbc:sqlite:DB;create=true";
         Connection connection = null;
         try {
             connection = DriverManager.getConnection(connectionString);
