@@ -13,7 +13,7 @@ public class H2DatabaseStrategy implements DatabaseStrategyInterface{
     @Override
     public String getConnectionString(String dbName) {
         //Need to add dbName from annotation
-        return "jdbc:h2:"+dbName+";create=true";
+        return "jdbc:h2:./"+dbName+";DB_CLOSE_ON_EXIT=FALSE";
     }
 
     @Override
