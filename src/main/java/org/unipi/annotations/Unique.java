@@ -5,10 +5,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-//It is applied on fields and indicates if a field will be a column on the DB.
+//It can only be applied to fields and
+// indicate if the field will be set as Unique on the DB (with SQl)
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface Field {
-    String name(); //name of the field.
-    String type(); //Type of the DB column (Varchar(20), Text, etc).
+public @interface Unique {
 }
