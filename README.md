@@ -1,6 +1,6 @@
 # Custom ORM Framework
 
-The Custom ORM Framework is a lightweight Object-Relational Mapping (ORM) tool designed to simplify database interactions by automatically generating methods for database operations based on class annotations.
+The Custom ORM Framework is a lightweight Object-Relational Mapping (ORM) tool made in java and designed to simplify database interactions by automatically generating methods for database operations based on class annotations.
 
 ## Features
 
