@@ -14,11 +14,12 @@ To get started with the Custom ORM Framework, follow these steps:
 
 1. **Download or Clone the Repository**: Clone or download the Custom ORM Framework repository from GitHub.
    
-2. **Create an input file**: Create an input file and put it inside the input pckage
+2. **Create an input file**: Create an input file and put it inside the Input Package. Only 1 file should be put at all times inside the Input package.
 
 3. **Annotate Your Class**: Add annotations to your input class to specify database table mappings and other configurations.
 
-4. **Use Generated Methods**: Once your model classes are annotated, the program will automatically generate methods for CRUD operations (specifically Read and Delete). You can then use these methods to interact with the database.
+4. **Use Generated Methods**: Once your model class is annotated, the program will automatically generate methods for CRUD operations (specifically Read and Delete). You can then use these methods to interact with the database.
+
 
 ## Example
 
