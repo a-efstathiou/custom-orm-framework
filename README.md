@@ -22,7 +22,7 @@ To get started with the Custom ORM Framework, follow these steps:
 
 ## Example
 
-Consider the following example of an input class annotated with the Custom ORM Framework annotations:
+Consider the following example of an input class annotated with the Custom ORM Framework annotations for a SQLite database:
 
 ```java
 @Database(name="DB",type="SQLite")
@@ -50,7 +50,7 @@ public class Student {
 }
 ```
 
-The generated result can be found in the Output package and it would look like this:
+The generated result can be found in the Output package and it will look like this:
 
 ```java
 public class Student {
