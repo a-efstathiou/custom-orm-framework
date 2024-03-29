@@ -4,7 +4,7 @@ The Custom ORM Framework is a lightweight Object-Relational Mapping (ORM) tool d
 
 ## Features
 
-- **Dynamic Method Generation**: The framework uses reflection to generate methods for database CRUD operations (Create, Read, Update, Delete) based on annotations in class files.
+- **Dynamic Method Generation**: The framework uses reflection to generate methods for database CRUD operations (Read, Delete) based on annotations in class files.
 - **Annotation-Based Configuration**: Annotations within class files are used to define database table mappings, making it easy to configure database interactions directly within your model classes.
 - **Support for Multiple Databases**: The framework supports connecting to various databases (Derby,SQLite, H2) , allowing users to work with different database systems seamlessly.
 
